@@ -1,0 +1,87 @@
+# ─────────────────────────────────────────────────────────────────
+# docker-compose.yml — LexTrack
+# Orquesta el backend (FastAPI) y frontend (React + nginx)
+#
+# Uso:
+#   docker compose up --build        → construir y levantar
+#   docker compose up -d             → levantar en background
+#   docker compose down              → detener y eliminar contenedores
+#   docker compose logs -f           → ver logs en tiempo real
+#   docker compose logs -f backend   → logs solo del backend
+# ─────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Backend FastAPI ───────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: lextrack-backend
+    restart: unless-stopped
+
+    # Variables de entorno: leídas desde el archivo .env del backend
+    # El archivo credentials.json se monta como volumen (no en la imagen)
+    env_file:
+      - ./backend/.env
+
+    # Montar credenciales de Google y código como volumen
+    volumes:
+      - ./backend/credentials.json:/app/credentials.json:ro
+      - ./backend/app:/app/app
+
+    # El backend NO expone puerto al host directamente en producción;
+    # el frontend nginx actúa como proxy.
+    # Para desarrollo/debug, descomentar las siguientes líneas:
+    ports:
+      - "8000:8000"
+
+    # Red interna para comunicación entre servicios
+    networks:
+      - lextrack-net
+
+    # Healthcheck para que el frontend espere al backend
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+
+  # ── Frontend React + nginx ────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: lextrack-frontend
+    restart: unless-stopped
+
+    # Expone el frontend en el puerto 3000 del host
+    ports:
+      - "3000:80"
+
+    # Espera que el backend esté saludable antes de iniciar
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    networks:
+      - lextrack-net
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+# ── Red interna ───────────────────────────────────────────────────
+networks:
+  lextrack-net:
+    driver: bridge
+    name: lextrack-network

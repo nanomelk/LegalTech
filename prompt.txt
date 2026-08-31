@@ -1,0 +1,82 @@
+# PROMPT DE INICIALIZACIÓN: MICROSISTEMA DE INGESTA Y GESTIÓN DE CASOS JURÍDICOS
+
+Actúa como un Arquitecto de Software Full Stack y Senior Developer. Necesito que inicialices la estructura y el código base de un microsistema ligero para un Estudio Jurídico, respetando una restricción estricta de presupuesto cero ($0).
+
+## 1. CONTEXTO Y ARQUITECTURA GENERAL
+El sistema automatiza el flujo de ingesta de datos de clientes y la gestión de expedientes procesales.
+- **Frontend:** React (Vite, TailwindCSS, Lucide-react para íconos).
+- **Backend:** FastAPI (Python 3.10+).
+- **Base de Datos / Persistencia:** Google Sheets (vía Google Sheets API v4 con gspread y google-auth) actuando como BBDD relacional simplificada.
+- **Integraciones:** Google Drive API (para generación de URLs de evidencia) y soporte para envío/recepción de JSONs estructurados de ingesta.
+
+## 2. ESTRUCTURA DEL PROYECTO (Monorepo ligero)
+Genera la siguiente estructura de archivos y carpetas:
+
+/estudio-juridico-app
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                # Puntos de entrada FastAPI, CORS y middleware
+│   │   ├── config.py              # Carga de variables de entorno (.env)
+│   │   ├── database.py            # Conexión con Google Sheets API (gspread)
+│   │   ├── routers/
+│   │   │   ├── __init__.py
+│   │   │   ├── casos.py           # Endpoints CRUD para la Ficha del Caso
+│   │   │   └── ingesta.py         # Endpoint para recibir payloads estructurados de WhatsApp/Formularios
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   └── caso_schema.py     # Modelos Pydantic (RD-01 y RD-02)
+│   │   └── services/
+│   │       ├── __init__.py
+│   │       └── sheets_service.py  # Lógica de lectura/escritura en Google Sheets
+│   ├── credentials.json.example   # Plantilla para Service Account de Google
+│   ├── .env.example
+│   └── requirements.txt           # fastapi, uvicorn, gspread, google-auth, pydantic, python-dotenv
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   │   ├── IngestaForm.jsx    # Formulario para carga manual de datos recibidos por WhatsApp (RD-02)
+    │   │   ├── CasosTable.jsx     # Tabla con vista de casos y semáforo visual de vencimientos (RF-01)
+    │   │   └── Navbar.jsx
+    │   ├── services/
+    │   │   └── api.js             # Axios / Fetch client
+    │   ├── App.jsx
+    │   └── main.jsx
+    ├── package.json
+    └── tailwind.config.js
+
+## 3. ESPECIFICACIÓN DE DATOS (MODELOS)
+Implementa los esquemas de datos según estos requerimientos:
+
+### A. Datos Mínimos de Ingesta (RD-02 / Pydantic `IngestaCreate`):
+- `nombre_completo`: str
+- `dni`: str
+- `domicilio_real`: str
+- `resumen_hecho`: str
+- `link_evidencia_drive`: Optional[str] = ""
+
+### B. Ficha del Caso (RD-01 / Pydantic `CasoDB`):
+- `id_caso`: str (Ej: "CASO-001")
+- `caratula`: str
+- `nro_expediente`: str
+- `fuero`: str (Ej: Civil, Laboral, Familia)
+- `fecha_vencimiento`: str (ISO Format YYYY-MM-DD)
+- `tipo_plazo`: str (Ej: Perentorio, Ordinal)
+- `estado_tramite`: str (Ej: "Pendiente Documentación", "En Revisión", "Ficha Completada")
+- `link_evidencia`: str
+
+## 4. FUNCIONALIDADES CLAVE A PROGRAMAR
+
+1. **Backend (`sheets_service.py`):**
+   - Lógica para conectar con Google Sheets usando una Service Account (`credentials.json`).
+   - Función `insertar_caso()`: Escribe una nueva fila en la hoja respetando el orden de columnas del RD-01.
+   - Función `obtener_casos()`: Lee todas las filas y las retorna como lista de diccionarios.
+
+2. **Backend Router (`ingesta.py`):**
+   - `POST /api/v1/ingesta`: Recibe la estructura RD-02, asigna un `id_caso` autogenerado y estado `"Ingesta Recibida"`, escribe en Google Sheets y retorna el objeto creado.
+
+3. **Frontend (`IngestaForm.jsx` y `CasosTable.jsx`):**
+   - Interfaz limpia, profesional y tipo dashboard legal.
+   - Componente `CasosTable`: Debe mostrar la lista de expedientes e incorporar la lógica del **RF-01 (Semáforo Visual)**: pintar de rojo las filas/fechas que vencen en menos de 3 días, amarillo si vencen en menos de 7 días, y verde si hay más tiempo.
+
+Por favor, genera primero el archivo `requirements.txt`, la configuración de FastAPI (`main.py`, `database.py`, `schemas/caso_schema.py`) y la integración con Google Sheets. Luego genera el frontend en React.
