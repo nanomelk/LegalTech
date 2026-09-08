@@ -165,3 +165,57 @@ def actualizar_estado_caso(id_caso: str, nuevo_estado: str) -> bool:
     ws.update_cell(cell.row, col_estado, nuevo_estado)
     logger.info("Estado del caso '%s' actualizado a '%s'.", id_caso, nuevo_estado)
     return True
+
+
+def obtener_o_crear_hoja_por_telefono(phone_number: str) -> gspread.Worksheet:
+    """
+    Obtiene o crea automáticamente una pestaña (worksheet) nombrada con el número de teléfono.
+    Garantiza que la Fila 1 tenga los 12 encabezados estándar.
+    """
+    sheet_name = str(phone_number).strip()
+    ws = get_worksheet(sheet_name)
+    _ensure_headers(ws)
+    return ws
+
+
+def insertar_caso_por_telefono(phone_number: str, caso: CasoDB) -> CasoDB:
+    """
+    Inserta un nuevo caso en la pestaña dinámica correspondiente al número de teléfono emisor
+    y opcionalmente también en la pestaña principal de 'Casos'.
+    """
+    phone_ws = obtener_o_crear_hoja_por_telefono(phone_number)
+    main_ws = get_worksheet(SHEET_NAME_CASOS)
+    _ensure_headers(main_ws)
+
+    # Si no tiene id, autogeneramos con el consecutivo global del spreadsheet
+    if not caso.id_caso:
+        caso.id_caso = _generar_id_caso(main_ws)
+
+    fila = [
+        caso.id_caso or "",
+        caso.caratula or "Sin Carátula",
+        caso.nro_expediente or "PENDIENTE",
+        caso.fuero or "Sin Asignar",
+        caso.fecha_vencimiento or "",
+        caso.tipo_plazo or "Sin Asignar",
+        caso.estado_tramite or "Ingesta Recibida",
+        caso.link_evidencia or "",
+        caso.nombre_cliente or "",
+        caso.dni_cliente or "",
+        caso.domicilio_cliente or "",
+        caso.resumen_hecho or "",
+    ]
+
+    # Insertar en la pestaña del teléfono
+    phone_ws.append_row(fila, value_input_option="USER_ENTERED")
+    logger.info("Caso '%s' insertado en pestaña de teléfono '%s'.", caso.id_caso, phone_number)
+
+    # Insertar también en la hoja general 'Casos' para consolidación
+    try:
+        main_ws.append_row(fila, value_input_option="USER_ENTERED")
+        logger.info("Caso '%s' insertado en la hoja principal 'Casos'.", caso.id_caso)
+    except Exception as exc:
+        logger.warning("No se pudo replicar el caso '%s' en la hoja principal: %s", caso.id_caso, exc)
+
+    return caso
+

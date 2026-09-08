@@ -29,3 +29,9 @@ CORS_ORIGINS: list[str] = [
 # Nombre de la hoja dentro del Spreadsheet
 SHEET_NAME_CASOS: str = os.getenv("SHEET_NAME_CASOS", "Casos").strip()
 SHEET_NAME_INGESTA: str = os.getenv("SHEET_NAME_INGESTA", "Ingesta").strip()
+
+# WhatsApp Business Cloud API Configuration
+WHATSAPP_VERIFY_TOKEN: str = os.getenv("WHATSAPP_VERIFY_TOKEN", "").strip()
+WHATSAPP_API_TOKEN: str = os.getenv("WHATSAPP_API_TOKEN", "").strip()
+WHATSAPP_PHONE_NUMBER_ID: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "").strip()
+

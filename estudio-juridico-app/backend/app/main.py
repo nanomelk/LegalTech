@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import CORS_ORIGINS
-from app.routers import casos, ingesta
+from app.routers import casos, ingesta, whatsapp
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -93,3 +93,5 @@ async def health() -> dict:
 # ---------------------------------------------------------------------------
 app.include_router(casos.router)
 app.include_router(ingesta.router)
+app.include_router(whatsapp.router)
+

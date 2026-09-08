@@ -303,6 +303,10 @@ SHEET_NAME_CASOS=Casos
 | `CORS_ORIGINS` | Orígenes permitidos (separados por coma) | `http://localhost:5173` | ✅ Sí |
 | `SHEET_NAME_CASOS` | Nombre de la hoja para casos | `Casos` | ❌ No (default: `Casos`) |
 | `SHEET_NAME_INGESTA` | Nombre de hoja para ingestas (futuro) | `Ingesta` | ❌ No |
+| `WHATSAPP_VERIFY_TOKEN` | Token de verificación para el webhook de Meta | `mi_token_secreto_verify` | ✅ Sí |
+| `WHATSAPP_API_TOKEN` | Access Token de Meta Graph API (Bearer) | `EAAG...` | ✅ Sí |
+| `WHATSAPP_PHONE_NUMBER_ID` | Identificador del número de teléfono en Meta | `123456789012345` | ✅ Sí |
+
 
 ### Frontend (`frontend/.env` — opcional)
 
@@ -543,7 +547,47 @@ Recibe datos mínimos del cliente (RD-02), genera automáticamente un `id_caso` 
 
 ---
 
+### Módulo de WhatsApp Business Cloud API — `/api/v1/whatsapp`
+
+Permite la ingesta dinámica conversacional por WhatsApp mediante un bot con máquina de estados interactiva (RD-02) y la creación automática de pestañas por número de teléfono emisor en Google Sheets.
+
+#### `GET /api/v1/whatsapp/webhook` — Verificación de Webhook de Meta
+
+Responde al handshake de Meta Cloud API para validar la suscripción del webhook.
+
+**Parámetros Query:**
+- `hub.mode` (string): Debe ser `subscribe`.
+- `hub.verify_token` (string): Debe coincidir con `WHATSAPP_VERIFY_TOKEN`.
+- `hub.challenge` (string): Código de desafío retornado como texto plano (`200 OK`).
+
+**Respuesta exitosa `200 OK`:** `text/plain` con el contenido de `hub.challenge`.
+
+---
+
+#### `POST /api/v1/whatsapp/webhook` — Ingesta y Procesamiento Conversacional
+
+Recibe el payload JSON de mensajes entrantes desde la WhatsApp Business Cloud API de Meta.
+
+#### Flujo del Chatbot Conversacional (Máquina de Estados):
+- **Paso 0 (Inicial):** Al recibir el primer mensaje del cliente, responde:
+  > *"¡Hola! Bienvenido al Estudio Jurídico. Para registrar su caso, por favor envíe su **Nombre Completo**."*
+- **Paso 1:** Al recibir el Nombre Completo, solicita:
+  > *"Gracias. Por favor, ingrese su número de **DNI**."*
+- **Paso 2:** Al recibir el DNI, solicita:
+  > *"Ingrese su **Domicilio Real**."*
+- **Paso 3:** Al recibir el Domicilio Real, solicita:
+  > *"Describa brevemente el **Resumen del Hecho** o consulta."*
+- **Paso 4:** Al recibir el Resumen del Hecho, solicita:
+  > *"Si posee documentación/evidencia en Google Drive, envíe el **Enlace**, o responda 'No'."*
+- **Paso 5 (Finalización e Ingesta):**
+  - Genera automáticamente una pestaña (worksheet) en Google Sheets nombrada con el número de teléfono emisor (ej: `+5493513110238`) si interactúa por primera vez, con los 12 encabezados estándar en Fila 1.
+  - Instancia y guarda la ficha del caso en Google Sheets con `id_caso` único y estado `Ingesta Recibida`.
+  - Envía la confirmación al usuario por WhatsApp con su ID de caso asignado.
+
+---
+
 ### Códigos de Estado HTTP
+
 
 | Código | Significado | Cuándo ocurre |
 |---|---|---|
