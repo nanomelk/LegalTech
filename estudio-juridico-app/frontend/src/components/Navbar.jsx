@@ -3,12 +3,14 @@
  * Incluye logo, menú de navegación y estado de conexión con la API.
  */
 import { useState } from 'react';
-import { Scale, FileText, PlusCircle, Menu, X, Wifi, WifiOff } from 'lucide-react';
+import { Scale, FileText, PlusCircle, MessageSquare, Menu, X, Wifi, WifiOff } from 'lucide-react';
 
 const navLinks = [
   { id: 'casos',   label: 'Expedientes', icon: FileText,    path: '/casos'   },
   { id: 'ingesta', label: 'Nueva Ingesta', icon: PlusCircle, path: '/ingesta' },
+  { id: 'chats',   label: 'Visualizar Chats', icon: MessageSquare, path: '/chats' },
 ];
+
 
 export default function Navbar({ activePage, onNavigate, apiOnline }) {
   const [menuOpen, setMenuOpen] = useState(false);

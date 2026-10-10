@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import CasosTable from './components/CasosTable';
 import IngestaForm from './components/IngestaForm';
+import ChatViewer from './components/ChatViewer';
 import { getCasos } from './services/api';
 
 export default function App() {
@@ -57,12 +58,18 @@ export default function App() {
             casos={casos}
             loading={loading}
             onRefresh={cargarCasos}
+            onNavigate={handleNavigate}
           />
         )}
+
         {pagina === 'ingesta' && (
           <IngestaForm onExito={handleIngestaExito} />
         )}
+        {pagina === 'chats' && (
+          <ChatViewer />
+        )}
       </main>
+
 
       {/* Footer */}
       <footer className="border-t border-white/5 mt-16 py-6 text-center text-xs text-slate-600">

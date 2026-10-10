@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // Proxy para evitar CORS durante desarrollo
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8001',
         changeOrigin: true,
       },
     },

@@ -1,0 +1,22 @@
+# LexTrack Frontend
+
+Panel de gestión y visualización de casos jurídicos construido con React, Vite y TailwindCSS.
+
+## Requisitos
+- Node.js 18+ o Docker
+
+## Instalación local
+```bash
+npm install
+```
+
+## Ejecución en desarrollo
+```bash
+npm run dev
+```
+
+## Compilación para producción
+```bash
+npm run build
+```
+Los archivos optimizados se generarán en la carpeta `dist/`.

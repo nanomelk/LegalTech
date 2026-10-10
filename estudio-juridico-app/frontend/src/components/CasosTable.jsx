@@ -9,8 +9,10 @@
 import { useState, useMemo } from 'react';
 import {
   RefreshCw, Search, ExternalLink, AlertTriangle,
-  Clock, CheckCircle, FileText, Filter, ChevronUp, ChevronDown
+  Clock, CheckCircle, FileText, Filter, ChevronUp, ChevronDown,
+  MessageSquare, PlusCircle
 } from 'lucide-react';
+
 
 // ---------------------------------------------------------------------------
 // Helpers de semáforo
@@ -58,7 +60,9 @@ function EstadoBadge({ estado }) {
 // ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
-export default function CasosTable({ casos = [], loading = false, onRefresh }) {
+// Componente principal
+// ---------------------------------------------------------------------------
+export default function CasosTable({ casos = [], loading = false, onRefresh, onNavigate }) {
   const [busqueda, setBusqueda] = useState('');
   const [filtroFuero, setFiltroFuero] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'fecha_vencimiento', dir: 'asc' });
@@ -124,16 +128,49 @@ export default function CasosTable({ casos = [], loading = false, onRefresh }) {
             {stats.total} caso{stats.total !== 1 ? 's' : ''} registrado{stats.total !== 1 ? 's' : ''}
           </p>
         </div>
-        <button
-          id="btn-refrescar-casos"
-          onClick={onRefresh}
-          disabled={loading}
-          className="btn-secondary self-start sm:self-auto"
-        >
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-          Actualizar
-        </button>
+
+        {/* Botones de acción del Dashboard */}
+        <div className="flex items-center flex-wrap gap-2.5">
+          {onNavigate && (
+            <button
+              id="btn-ver-chats"
+              onClick={() => onNavigate('chats')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+                         bg-gradient-to-r from-navy-700 to-navy-600 hover:from-navy-600 hover:to-navy-500
+                         text-white border border-navy-500/50 shadow-glow-blue hover:shadow-lg
+                         transition-all duration-200 active:scale-95"
+            >
+              <MessageSquare size={16} className="text-gold-400" />
+              <span>Visualizar Chats</span>
+            </button>
+          )}
+
+          {onNavigate && (
+            <button
+              id="btn-nueva-ingesta"
+              onClick={() => onNavigate('ingesta')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+                         bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white
+                         border border-white/10 hover:border-white/20
+                         transition-all duration-200"
+            >
+              <PlusCircle size={15} />
+              <span>Nueva Ingesta</span>
+            </button>
+          )}
+
+          <button
+            id="btn-refrescar-casos"
+            onClick={onRefresh}
+            disabled={loading}
+            className="btn-secondary"
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            Actualizar
+          </button>
+        </div>
       </div>
+
 
       {/* Stats rápidas */}
       <div className="grid grid-cols-3 gap-4">

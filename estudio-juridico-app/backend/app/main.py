@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import CORS_ORIGINS
-from app.routers import casos, ingesta, whatsapp
+from app.routers import casos, ingesta, whatsapp, chats
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -55,11 +55,22 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Excepción no controlada en %s: %s", request.url.path, exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Error interno en el servidor: {str(exc) or type(exc).__name__}"},
+    )
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -94,4 +105,5 @@ async def health() -> dict:
 app.include_router(casos.router)
 app.include_router(ingesta.router)
 app.include_router(whatsapp.router)
+app.include_router(chats.router)
 
