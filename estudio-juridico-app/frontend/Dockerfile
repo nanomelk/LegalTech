@@ -20,8 +20,8 @@ RUN npm ci --silent
 COPY . .
 
 # Construir para producción
-# VITE_API_URL vacío → las llamadas /api/* se resuelven via nginx proxy
-ENV VITE_API_URL=""
+# Usa el mismo origen para que Nginx reenvíe /api/* al backend de Docker.
+ENV VITE_API_URL=/
 RUN npm run build
 
 

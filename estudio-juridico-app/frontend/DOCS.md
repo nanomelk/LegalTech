@@ -177,6 +177,10 @@ idle → (submit) → loading → success
 
 Axios con `baseURL` configurable por variable de entorno `VITE_API_URL`.
 
+En el build de Docker, `VITE_API_URL=/` mantiene las llamadas en el mismo origen
+del frontend y Nginx las reenvía al servicio `backend`. El archivo
+`.env.production` conserva la URL de Render para despliegues fuera de Docker.
+
 **Interceptor de respuesta:**
 ```javascript
 // Normaliza todos los errores a { status, mensaje }
